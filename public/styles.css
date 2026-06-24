@@ -616,8 +616,18 @@ img { max-width: 100%; display: block; }
 .error-page { text-align: center; padding: 4rem 0; }
 .error-code { font-family: "Outfit", sans-serif; font-size: 4rem; font-weight: 800; color: var(--brand); margin: 0; }
 
-.footer-admin { color: #475569; text-decoration: underline; margin-left: .5rem; }
-.footer-admin:hover { color: #94a3b8; }
+.footer-admin {
+  display: inline-block;
+  margin-left: .6rem;
+  padding: .15rem .6rem;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 999px;
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: .78rem;
+  white-space: nowrap;
+}
+.footer-admin:hover { color: #e2e8f0; border-color: rgba(255,255,255,.4); }
 
 @media (max-width: 560px) {
   .post-item { grid-template-columns: 1fr; }
