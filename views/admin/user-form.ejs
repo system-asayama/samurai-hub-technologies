@@ -1,0 +1,47 @@
+<%- include("partials/head", { title }) %>
+
+<div class="admin-page-head">
+  <a class="back-link" href="/admin/users">← ユーザー管理へ</a>
+  <h1><%= mode === "edit" ? "ユーザーを編集" : "ユーザーを追加" %></h1>
+</div>
+
+<% if (error) { %><div class="admin-alert admin-alert-error"><%= error %></div><% } %>
+
+<form method="POST" action="<%= mode === 'edit' ? '/admin/users/' + user.id : '/admin/users' %>" class="admin-form">
+  <label class="admin-field">
+    <span>表示名</span>
+    <input type="text" name="name" value="<%= user ? user.name : '' %>" placeholder="侍 太郎">
+    <small>ブログ・実績の投稿者として表示されます。</small>
+  </label>
+
+  <label class="admin-field">
+    <span>ユーザー名（ログインID）<i>必須</i></span>
+    <% if (mode === "edit") { %>
+      <input type="text" value="<%= user.username %>" disabled>
+      <small>ユーザー名は変更できません。</small>
+    <% } else { %>
+      <input type="text" name="username" required autocomplete="off" placeholder="taro">
+    <% } %>
+  </label>
+
+  <label class="admin-field">
+    <span>パスワード <% if (mode === "new") { %><i>必須</i><% } %></span>
+    <input type="password" name="password" autocomplete="new-password" <%= mode === "new" ? "required" : "" %> placeholder="<%= mode === 'edit' ? '変更する場合のみ入力' : '8文字以上を推奨' %>">
+    <% if (mode === "edit") { %><small>空欄のままなら現在のパスワードを維持します。</small><% } %>
+  </label>
+
+  <label class="admin-field">
+    <span>権限</span>
+    <select name="role">
+      <option value="editor" <%= user && user.role === "editor" ? "selected" : "" %>>編集者（ブログ・実績の編集）</option>
+      <option value="admin" <%= user && user.role === "admin" ? "selected" : "" %>>管理者（ユーザー管理も可能）</option>
+    </select>
+  </label>
+
+  <div class="admin-form-actions">
+    <button type="submit" class="btn btn-primary">保存する</button>
+    <a class="btn btn-ghost" href="/admin/users">キャンセル</a>
+  </div>
+</form>
+
+<%- include("partials/foot") %>

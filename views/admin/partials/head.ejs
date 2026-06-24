@@ -19,6 +19,7 @@
       </a>
       <nav class="admin-nav">
         <a href="/admin">ダッシュボード</a>
+        <% if (currentUser && currentUser.role === "admin") { %><a href="/admin/users">ユーザー</a><% } %>
         <a href="/" target="_blank" rel="noopener">サイトを表示 ↗</a>
         <form method="POST" action="/admin/logout" class="logout-form">
           <button type="submit" class="admin-logout">ログアウト</button>

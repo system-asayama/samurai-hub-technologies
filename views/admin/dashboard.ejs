@@ -2,12 +2,13 @@
 
 <div class="admin-page-head">
   <h1>ダッシュボード</h1>
-  <p class="admin-welcome"><%= adminUsername %> さんでログイン中</p>
+  <p class="admin-welcome"><%= currentUser.name %> さん（<%= currentUser.role === "admin" ? "管理者" : "編集者" %>）でログイン中</p>
 </div>
 
 <% if (showPasswordWarning) { %>
 <div class="admin-alert">
-  ⚠️ 初期パスワードのまま稼働しています。<strong>ADMIN_PASSWORD</strong>（GitHub Secrets）を設定して再デプロイしてください。
+  ⚠️ 初期パスワードのまま稼働しています。
+  <% if (currentUser.role === "admin") { %><a href="/admin/users/<%= currentUser.id %>/edit">パスワードを変更</a>してください。<% } else { %>管理者にパスワード変更を依頼してください。<% } %>
 </div>
 <% } %>
 
@@ -21,12 +22,13 @@
     <p class="admin-empty">まだ記事がありません。「新規作成」から追加できます。</p>
   <% } else { %>
     <table class="admin-table">
-      <thead><tr><th>タイトル</th><th>状態</th><th>更新日</th><th class="col-actions">操作</th></tr></thead>
+      <thead><tr><th>タイトル</th><th>状態</th><th>投稿者</th><th>更新日</th><th class="col-actions">操作</th></tr></thead>
       <tbody>
         <% posts.forEach(function(p){ %>
           <tr>
             <td><a href="/admin/posts/<%= p.id %>/edit"><%= p.title %></a><div class="admin-slug">/blog/<%= p.slug %></div></td>
             <td><span class="badge <%= p.published ? 'badge-pub' : 'badge-draft' %>"><%= p.published ? '公開' : '下書き' %></span></td>
+            <td><%= p.author || "—" %></td>
             <td><%= new Date(p.updatedAt).toLocaleDateString("ja-JP") %></td>
             <td class="col-actions">
               <a class="link-edit" href="/admin/posts/<%= p.id %>/edit">編集</a>
@@ -51,12 +53,13 @@
     <p class="admin-empty">まだ実績がありません。「新規作成」から追加できます。</p>
   <% } else { %>
     <table class="admin-table">
-      <thead><tr><th>タイトル</th><th>状態</th><th>更新日</th><th class="col-actions">操作</th></tr></thead>
+      <thead><tr><th>タイトル</th><th>状態</th><th>投稿者</th><th>更新日</th><th class="col-actions">操作</th></tr></thead>
       <tbody>
         <% works.forEach(function(w){ %>
           <tr>
             <td><a href="/admin/works/<%= w.id %>/edit"><%= w.title %></a><div class="admin-slug">/works/<%= w.slug %></div></td>
             <td><span class="badge <%= w.published ? 'badge-pub' : 'badge-draft' %>"><%= w.published ? '公開' : '下書き' %></span></td>
+            <td><%= w.author || "—" %></td>
             <td><%= new Date(w.updatedAt).toLocaleDateString("ja-JP") %></td>
             <td class="col-actions">
               <a class="link-edit" href="/admin/works/<%= w.id %>/edit">編集</a>

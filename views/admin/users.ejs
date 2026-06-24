@@ -1,0 +1,56 @@
+<%- include("partials/head", { title }) %>
+
+<div class="admin-page-head">
+  <h1>ユーザー管理</h1>
+  <p class="admin-welcome">サイトを編集できるメンバーを管理します。</p>
+</div>
+
+<%
+  const notices = {
+    created: "ユーザーを追加しました。",
+    updated: "ユーザー情報を更新しました。",
+    deleted: "ユーザーを削除しました。",
+    self: "自分自身は削除できません。",
+    lastadmin: "管理者が0人になるため、この管理者は削除できません。",
+  };
+%>
+<% if (notice && notices[notice]) { %>
+<div class="admin-alert <%= (notice === 'self' || notice === 'lastadmin') ? 'admin-alert-error' : 'admin-alert-ok' %>">
+  <%= notices[notice] %>
+</div>
+<% } %>
+
+<section class="admin-section">
+  <div class="admin-section-head">
+    <h2>メンバー（<%= users.length %>人）</h2>
+    <a class="btn btn-primary btn-sm" href="/admin/users/new">＋ ユーザーを追加</a>
+  </div>
+  <table class="admin-table">
+    <thead><tr><th>名前</th><th>ユーザー名</th><th>権限</th><th>作成日</th><th class="col-actions">操作</th></tr></thead>
+    <tbody>
+      <% users.forEach(function(u){ %>
+        <tr>
+          <td>
+            <a href="/admin/users/<%= u.id %>/edit"><%= u.name %></a>
+            <% if (u.id === currentUser.id) { %><span class="self-tag">あなた</span><% } %>
+          </td>
+          <td><%= u.username %></td>
+          <td><span class="badge <%= u.role === 'admin' ? 'badge-admin' : 'badge-editor' %>"><%= u.role === 'admin' ? '管理者' : '編集者' %></span></td>
+          <td><%= new Date(u.createdAt).toLocaleDateString("ja-JP") %></td>
+          <td class="col-actions">
+            <a class="link-edit" href="/admin/users/<%= u.id %>/edit">編集</a>
+            <% if (u.id !== currentUser.id) { %>
+              <form method="POST" action="/admin/users/<%= u.id %>/delete" onsubmit="return confirm('「<%= u.name %>」を削除しますか？');">
+                <button type="submit" class="link-delete">削除</button>
+              </form>
+            <% } %>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</section>
+
+<p class="admin-hint">「編集者」はブログ・実績の投稿/編集ができます。「管理者」はそれに加えてユーザーの追加・削除ができます。</p>
+
+<%- include("partials/foot") %>

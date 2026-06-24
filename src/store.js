@@ -7,7 +7,7 @@ import path from "node:path";
 const DATA_DIR = process.env.DATA_DIR || "/data";
 const DATA_FILE = path.join(DATA_DIR, "data.json");
 
-const EMPTY = { posts: [], works: [] };
+const EMPTY = { users: [], posts: [], works: [] };
 
 let cache = null;
 let writeChain = Promise.resolve();
@@ -22,7 +22,7 @@ async function load() {
   try {
     const raw = await fs.readFile(DATA_FILE, "utf8");
     const parsed = JSON.parse(raw);
-    cache = { posts: [], works: [], ...parsed };
+    cache = { users: [], posts: [], works: [], ...parsed };
   } catch (err) {
     if (err.code === "ENOENT") {
       cache = structuredClone(EMPTY);
@@ -64,6 +64,68 @@ export function slugify(input, fallback) {
   return base || fallback || genId();
 }
 
+// ---- Users (管理ユーザー) ----
+export async function listUsers() {
+  const db = await load();
+  return [...db.users].sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1));
+}
+
+export async function countUsers() {
+  const db = await load();
+  return db.users.length;
+}
+
+export async function getUserByUsername(username) {
+  const db = await load();
+  const key = String(username || "").trim().toLowerCase();
+  return db.users.find((u) => u.username.toLowerCase() === key) || null;
+}
+
+export async function getUserById(id) {
+  const db = await load();
+  return db.users.find((u) => u.id === id) || null;
+}
+
+export async function createUser({ username, name, passwordHash, role }) {
+  const db = await load();
+  const user = {
+    id: genId(),
+    username: String(username).trim(),
+    name: name || username,
+    passwordHash,
+    role: role === "admin" ? "admin" : "editor",
+    createdAt: new Date().toISOString(),
+  };
+  db.users.push(user);
+  await persist();
+  return user;
+}
+
+export async function updateUser(id, data) {
+  const db = await load();
+  const user = db.users.find((u) => u.id === id);
+  if (!user) return null;
+  if (data.name !== undefined) user.name = data.name;
+  if (data.role !== undefined) user.role = data.role === "admin" ? "admin" : "editor";
+  if (data.passwordHash) user.passwordHash = data.passwordHash;
+  await persist();
+  return user;
+}
+
+export async function deleteUser(id) {
+  const db = await load();
+  const i = db.users.findIndex((u) => u.id === id);
+  if (i === -1) return false;
+  db.users.splice(i, 1);
+  await persist();
+  return true;
+}
+
+export async function countAdmins() {
+  const db = await load();
+  return db.users.filter((u) => u.role === "admin").length;
+}
+
 // ---- Posts (ブログ) ----
 export async function listPosts({ publishedOnly = false } = {}) {
   const db = await load();
@@ -92,6 +154,7 @@ export async function createPost(data) {
     excerpt: data.excerpt || "",
     body: data.body || "",
     coverImage: data.coverImage || "",
+    author: data.author || "",
     published: Boolean(data.published),
     createdAt: now,
     updatedAt: now,
@@ -157,6 +220,7 @@ export async function createWork(data) {
     coverImage: data.coverImage || "",
     url: data.url || "",
     tags: normalizeTags(data.tags),
+    author: data.author || "",
     published: Boolean(data.published),
     createdAt: now,
     updatedAt: now,

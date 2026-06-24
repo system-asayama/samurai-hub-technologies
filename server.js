@@ -8,11 +8,14 @@ import crypto from "node:crypto";
 import * as store from "./src/store.js";
 import { renderMarkdown, toPlainExcerpt } from "./src/markdown.js";
 import {
-  verifyCredentials,
+  authenticate,
+  sessionUser,
+  hashPassword,
   requireAuth,
+  requireAdmin,
   warnIfInsecure,
   isUsingDefaultPassword,
-  adminUsername,
+  bootstrap,
 } from "./src/auth.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -118,17 +121,22 @@ app.get("/admin/login", (req, res) => {
   res.render("admin/login", { title: "管理者ログイン", error: null, layout: false });
 });
 
-app.post("/admin/login", (req, res) => {
-  const { username, password } = req.body;
-  if (verifyCredentials(username, password)) {
-    req.session.user = { name: username };
-    return res.redirect("/admin");
+app.post("/admin/login", async (req, res, next) => {
+  try {
+    const { username, password } = req.body;
+    const user = await authenticate(username, password);
+    if (user) {
+      req.session.user = sessionUser(user);
+      return res.redirect("/admin");
+    }
+    res.status(401).render("admin/login", {
+      title: "管理者ログイン",
+      error: "ユーザー名またはパスワードが正しくありません。",
+      layout: false,
+    });
+  } catch (err) {
+    next(err);
   }
-  res.status(401).render("admin/login", {
-    title: "管理者ログイン",
-    error: "ユーザー名またはパスワードが正しくありません。",
-    layout: false,
-  });
 });
 
 app.post("/admin/logout", (req, res) => {
@@ -145,8 +153,7 @@ app.get("/admin", async (req, res, next) => {
       title: "管理ダッシュボード",
       posts,
       works,
-      showPasswordWarning: isUsingDefaultPassword,
-      adminUsername,
+      showPasswordWarning: isUsingDefaultPassword(),
     });
   } catch (err) {
     next(err);
@@ -160,7 +167,7 @@ app.get("/admin/posts/new", (req, res) => {
 
 app.post("/admin/posts", async (req, res, next) => {
   try {
-    await store.createPost(formToPost(req.body));
+    await store.createPost({ ...formToPost(req.body), author: req.session.user.name });
     res.redirect("/admin");
   } catch (err) {
     next(err);
@@ -203,7 +210,7 @@ app.get("/admin/works/new", (req, res) => {
 
 app.post("/admin/works", async (req, res, next) => {
   try {
-    await store.createWork(formToWork(req.body));
+    await store.createWork({ ...formToWork(req.body), author: req.session.user.name });
     res.redirect("/admin");
   } catch (err) {
     next(err);
@@ -234,6 +241,108 @@ app.post("/admin/works/:id/delete", async (req, res, next) => {
   try {
     await store.deleteWork(req.params.id);
     res.redirect("/admin");
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------- ユーザー管理（管理者のみ） ----------
+app.get("/admin/users", requireAdmin, async (req, res, next) => {
+  try {
+    const users = await store.listUsers();
+    res.render("admin/users", { title: "ユーザー管理", users, notice: req.query.notice || null });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get("/admin/users/new", requireAdmin, (req, res) => {
+  res.render("admin/user-form", { title: "ユーザーを追加", user: null, mode: "new", error: null });
+});
+
+app.post("/admin/users", requireAdmin, async (req, res, next) => {
+  try {
+    const { username, name, password, role } = req.body;
+    const uname = (username || "").trim();
+    if (!uname || !password) {
+      return res.status(400).render("admin/user-form", {
+        title: "ユーザーを追加",
+        user: null,
+        mode: "new",
+        error: "ユーザー名とパスワードは必須です。",
+      });
+    }
+    if (await store.getUserByUsername(uname)) {
+      return res.status(409).render("admin/user-form", {
+        title: "ユーザーを追加",
+        user: null,
+        mode: "new",
+        error: "そのユーザー名は既に使われています。",
+      });
+    }
+    await store.createUser({
+      username: uname,
+      name: (name || "").trim() || uname,
+      passwordHash: hashPassword(password),
+      role,
+    });
+    res.redirect("/admin/users?notice=created");
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get("/admin/users/:id/edit", requireAdmin, async (req, res, next) => {
+  try {
+    const user = await store.getUserById(req.params.id);
+    if (!user) return next();
+    res.render("admin/user-form", { title: "ユーザーを編集", user, mode: "edit", error: null });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/admin/users/:id", requireAdmin, async (req, res, next) => {
+  try {
+    const user = await store.getUserById(req.params.id);
+    if (!user) return next();
+    const { name, password, role } = req.body;
+    const patch = { name: (name || "").trim() || user.username };
+
+    // 管理者を自分自身から降格させて管理者が0人になるのを防ぐ
+    let nextRole = role === "admin" ? "admin" : "editor";
+    if (user.role === "admin" && nextRole !== "admin" && (await store.countAdmins()) <= 1) {
+      nextRole = "admin";
+    }
+    patch.role = nextRole;
+    if (password) patch.passwordHash = hashPassword(password);
+
+    await store.updateUser(user.id, patch);
+
+    // 自分自身を編集した場合はセッションの表示名・ロールも更新
+    if (req.session.user.id === user.id) {
+      req.session.user.name = patch.name;
+      req.session.user.role = patch.role;
+    }
+    res.redirect("/admin/users?notice=updated");
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post("/admin/users/:id/delete", requireAdmin, async (req, res, next) => {
+  try {
+    const user = await store.getUserById(req.params.id);
+    if (!user) return next();
+    // 自分自身・最後の管理者は削除不可
+    if (req.session.user.id === user.id) {
+      return res.redirect("/admin/users?notice=self");
+    }
+    if (user.role === "admin" && (await store.countAdmins()) <= 1) {
+      return res.redirect("/admin/users?notice=lastadmin");
+    }
+    await store.deleteUser(user.id);
+    res.redirect("/admin/users?notice=deleted");
   } catch (err) {
     next(err);
   }
@@ -274,7 +383,15 @@ function formToWork(body) {
   };
 }
 
-app.listen(PORT, "0.0.0.0", () => {
-  warnIfInsecure();
-  console.log(`Samurai Hub Technologies is running on http://0.0.0.0:${PORT}`);
+async function startServer() {
+  await bootstrap();
+  app.listen(PORT, "0.0.0.0", () => {
+    warnIfInsecure();
+    console.log(`Samurai Hub Technologies is running on http://0.0.0.0:${PORT}`);
+  });
+}
+
+startServer().catch((err) => {
+  console.error("起動に失敗しました:", err);
+  process.exit(1);
 });
