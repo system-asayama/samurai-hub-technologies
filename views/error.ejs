@@ -1,0 +1,11 @@
+<%- include("partials/head", { title }) %>
+
+<section class="section">
+  <div class="container error-page">
+    <p class="error-code"><%= code %></p>
+    <h1 class="section-title"><%= message %></h1>
+    <p><a class="btn btn-primary" href="/">トップへ戻る</a></p>
+  </div>
+</section>
+
+<%- include("partials/foot") %>

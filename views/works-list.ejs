@@ -1,0 +1,30 @@
+<%- include("partials/head", { title }) %>
+
+<section class="page-hero">
+  <div class="container">
+    <p class="section-eyebrow on-dark">Works</p>
+    <h1 class="page-hero-title">実績</h1>
+    <p class="page-hero-desc">これまでに手がけたプロジェクトをご紹介します。</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <% if (!works.length) { %>
+      <p class="empty-state">まだ実績がありません。</p>
+    <% } else { %>
+      <div class="cards">
+        <% works.forEach(function(w){ %>
+          <article class="card work-card">
+            <% if (w.coverImage) { %><a href="/works/<%= w.slug %>" class="work-thumb"><img src="<%= w.coverImage %>" alt="<%= w.title %>" loading="lazy"></a><% } %>
+            <h2><a href="/works/<%= w.slug %>"><%= w.title %></a></h2>
+            <p><%= w.summary || toPlainExcerpt(w.body, 80) %></p>
+            <% if (w.tags && w.tags.length) { %><ul class="tag-list"><% w.tags.forEach(function(t){ %><li><%= t %></li><% }) %></ul><% } %>
+          </article>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</section>
+
+<%- include("partials/foot") %>

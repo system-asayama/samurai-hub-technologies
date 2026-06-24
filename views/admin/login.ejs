@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <link rel="stylesheet" href="/assets/admin.css">
+</head>
+<body class="admin-auth">
+  <main class="login-wrap">
+    <div class="login-card">
+      <a class="brand login-brand" href="/">
+        <span class="brand-mark" aria-hidden="true">侍</span>
+        <span class="brand-text"><strong>Samurai Hub</strong><small>Admin</small></span>
+      </a>
+      <h1 class="login-title">管理者ログイン</h1>
+      <% if (error) { %><p class="login-error"><%= error %></p><% } %>
+      <form method="POST" action="/admin/login" class="login-form">
+        <label class="form-field-light">
+          <span>ユーザー名</span>
+          <input type="text" name="username" required autocomplete="username" autofocus>
+        </label>
+        <label class="form-field-light">
+          <span>パスワード</span>
+          <input type="password" name="password" required autocomplete="current-password">
+        </label>
+        <button type="submit" class="btn btn-primary btn-block">ログイン</button>
+      </form>
+      <a class="login-back" href="/">← サイトに戻る</a>
+    </div>
+  </main>
+</body>
+</html>

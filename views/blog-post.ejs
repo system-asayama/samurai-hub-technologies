@@ -1,0 +1,15 @@
+<%- include("partials/head", { title }) %>
+
+<article class="article">
+  <div class="container article-narrow">
+    <a class="back-link" href="/blog">← ブログ一覧へ</a>
+    <header class="article-head">
+      <time class="post-date"><%= new Date(post.createdAt).toLocaleDateString("ja-JP") %></time>
+      <h1 class="article-title"><%= post.title %></h1>
+    </header>
+    <% if (post.coverImage) { %><img class="article-cover" src="<%= post.coverImage %>" alt="<%= post.title %>"><% } %>
+    <div class="article-body prose"><%- bodyHtml %></div>
+  </div>
+</article>
+
+<%- include("partials/foot") %>

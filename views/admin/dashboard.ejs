@@ -1,0 +1,74 @@
+<%- include("partials/head", { title }) %>
+
+<div class="admin-page-head">
+  <h1>ダッシュボード</h1>
+  <p class="admin-welcome"><%= adminUsername %> さんでログイン中</p>
+</div>
+
+<% if (showPasswordWarning) { %>
+<div class="admin-alert">
+  ⚠️ 初期パスワードのまま稼働しています。<strong>ADMIN_PASSWORD</strong>（GitHub Secrets）を設定して再デプロイしてください。
+</div>
+<% } %>
+
+<!-- ブログ -->
+<section class="admin-section">
+  <div class="admin-section-head">
+    <h2>ブログ記事</h2>
+    <a class="btn btn-primary btn-sm" href="/admin/posts/new">＋ 新規作成</a>
+  </div>
+  <% if (!posts.length) { %>
+    <p class="admin-empty">まだ記事がありません。「新規作成」から追加できます。</p>
+  <% } else { %>
+    <table class="admin-table">
+      <thead><tr><th>タイトル</th><th>状態</th><th>更新日</th><th class="col-actions">操作</th></tr></thead>
+      <tbody>
+        <% posts.forEach(function(p){ %>
+          <tr>
+            <td><a href="/admin/posts/<%= p.id %>/edit"><%= p.title %></a><div class="admin-slug">/blog/<%= p.slug %></div></td>
+            <td><span class="badge <%= p.published ? 'badge-pub' : 'badge-draft' %>"><%= p.published ? '公開' : '下書き' %></span></td>
+            <td><%= new Date(p.updatedAt).toLocaleDateString("ja-JP") %></td>
+            <td class="col-actions">
+              <a class="link-edit" href="/admin/posts/<%= p.id %>/edit">編集</a>
+              <form method="POST" action="/admin/posts/<%= p.id %>/delete" onsubmit="return confirm('「<%= p.title %>」を削除しますか？');">
+                <button type="submit" class="link-delete">削除</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</section>
+
+<!-- 実績 -->
+<section class="admin-section">
+  <div class="admin-section-head">
+    <h2>実績</h2>
+    <a class="btn btn-primary btn-sm" href="/admin/works/new">＋ 新規作成</a>
+  </div>
+  <% if (!works.length) { %>
+    <p class="admin-empty">まだ実績がありません。「新規作成」から追加できます。</p>
+  <% } else { %>
+    <table class="admin-table">
+      <thead><tr><th>タイトル</th><th>状態</th><th>更新日</th><th class="col-actions">操作</th></tr></thead>
+      <tbody>
+        <% works.forEach(function(w){ %>
+          <tr>
+            <td><a href="/admin/works/<%= w.id %>/edit"><%= w.title %></a><div class="admin-slug">/works/<%= w.slug %></div></td>
+            <td><span class="badge <%= w.published ? 'badge-pub' : 'badge-draft' %>"><%= w.published ? '公開' : '下書き' %></span></td>
+            <td><%= new Date(w.updatedAt).toLocaleDateString("ja-JP") %></td>
+            <td class="col-actions">
+              <a class="link-edit" href="/admin/works/<%= w.id %>/edit">編集</a>
+              <form method="POST" action="/admin/works/<%= w.id %>/delete" onsubmit="return confirm('「<%= w.title %>」を削除しますか？');">
+                <button type="submit" class="link-delete">削除</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</section>
+
+<%- include("partials/foot") %>

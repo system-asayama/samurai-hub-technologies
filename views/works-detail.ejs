@@ -1,0 +1,17 @@
+<%- include("partials/head", { title }) %>
+
+<article class="article">
+  <div class="container article-narrow">
+    <a class="back-link" href="/works">← 実績一覧へ</a>
+    <header class="article-head">
+      <h1 class="article-title"><%= work.title %></h1>
+      <% if (work.summary) { %><p class="article-lead"><%= work.summary %></p><% } %>
+      <% if (work.tags && work.tags.length) { %><ul class="tag-list"><% work.tags.forEach(function(t){ %><li><%= t %></li><% }) %></ul><% } %>
+    </header>
+    <% if (work.coverImage) { %><img class="article-cover" src="<%= work.coverImage %>" alt="<%= work.title %>"><% } %>
+    <div class="article-body prose"><%- bodyHtml %></div>
+    <% if (work.url) { %><p class="article-action"><a class="btn btn-primary" href="<%= work.url %>" target="_blank" rel="noopener noreferrer">サイトを見る ↗</a></p><% } %>
+  </div>
+</article>
+
+<%- include("partials/foot") %>

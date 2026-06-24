@@ -1,0 +1,47 @@
+<%- include("partials/head", { title }) %>
+
+<div class="admin-page-head">
+  <a class="back-link" href="/admin">← ダッシュボードへ</a>
+  <h1><%= mode === "edit" ? "記事を編集" : "記事を新規作成" %></h1>
+</div>
+
+<form method="POST" action="<%= mode === 'edit' ? '/admin/posts/' + post.id : '/admin/posts' %>" class="admin-form">
+  <label class="admin-field">
+    <span>タイトル <i>必須</i></span>
+    <input type="text" name="title" required value="<%= post ? post.title : '' %>" placeholder="記事のタイトル">
+  </label>
+
+  <label class="admin-field">
+    <span>スラッグ（URL末尾）</span>
+    <input type="text" name="slug" value="<%= post ? post.slug : '' %>" placeholder="空欄ならタイトルから自動生成">
+    <small>例：/blog/<strong><%= post ? post.slug : 'my-first-post' %></strong></small>
+  </label>
+
+  <label class="admin-field">
+    <span>抜粋（一覧に表示／空欄なら本文先頭から自動）</span>
+    <textarea name="excerpt" rows="2" placeholder="記事の概要"><%= post ? post.excerpt : '' %></textarea>
+  </label>
+
+  <label class="admin-field">
+    <span>カバー画像URL</span>
+    <input type="url" name="coverImage" value="<%= post ? post.coverImage : '' %>" placeholder="https://...">
+  </label>
+
+  <label class="admin-field">
+    <span>本文（Markdown対応）<i>必須</i></span>
+    <textarea name="body" rows="18" required class="mono" placeholder="# 見出し&#10;&#10;本文を Markdown で書けます。"><%= post ? post.body : '' %></textarea>
+  </label>
+
+  <label class="admin-check">
+    <input type="checkbox" name="published" <%= post && post.published ? 'checked' : '' %>>
+    <span>公開する（チェックを外すと下書き）</span>
+  </label>
+
+  <div class="admin-form-actions">
+    <button type="submit" class="btn btn-primary">保存する</button>
+    <a class="btn btn-ghost" href="/admin">キャンセル</a>
+    <% if (mode === "edit") { %><a class="btn btn-ghost" href="/blog/<%= post.slug %>" target="_blank" rel="noopener">プレビュー ↗</a><% } %>
+  </div>
+</form>
+
+<%- include("partials/foot") %>

@@ -1,0 +1,33 @@
+<%- include("partials/head", { title }) %>
+
+<section class="page-hero">
+  <div class="container">
+    <p class="section-eyebrow on-dark">Blog</p>
+    <h1 class="page-hero-title">ブログ</h1>
+    <p class="page-hero-desc">開発の知見や日々の取り組みを発信しています。</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <% if (!posts.length) { %>
+      <p class="empty-state">まだ記事がありません。</p>
+    <% } else { %>
+      <div class="post-list">
+        <% posts.forEach(function(p){ %>
+          <article class="post-item">
+            <% if (p.coverImage) { %><a href="/blog/<%= p.slug %>" class="post-thumb"><img src="<%= p.coverImage %>" alt="<%= p.title %>" loading="lazy"></a><% } %>
+            <div class="post-body">
+              <time class="post-date"><%= new Date(p.createdAt).toLocaleDateString("ja-JP") %></time>
+              <h2><a href="/blog/<%= p.slug %>"><%= p.title %></a></h2>
+              <p><%= p.excerpt || toPlainExcerpt(p.body) %></p>
+              <a class="read-more" href="/blog/<%= p.slug %>">続きを読む →</a>
+            </div>
+          </article>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</section>
+
+<%- include("partials/foot") %>

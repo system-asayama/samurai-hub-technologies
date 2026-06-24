@@ -1,0 +1,57 @@
+<%- include("partials/head", { title }) %>
+
+<div class="admin-page-head">
+  <a class="back-link" href="/admin">← ダッシュボードへ</a>
+  <h1><%= mode === "edit" ? "実績を編集" : "実績を新規作成" %></h1>
+</div>
+
+<form method="POST" action="<%= mode === 'edit' ? '/admin/works/' + work.id : '/admin/works' %>" class="admin-form">
+  <label class="admin-field">
+    <span>タイトル <i>必須</i></span>
+    <input type="text" name="title" required value="<%= work ? work.title : '' %>" placeholder="プロジェクト名">
+  </label>
+
+  <label class="admin-field">
+    <span>スラッグ（URL末尾）</span>
+    <input type="text" name="slug" value="<%= work ? work.slug : '' %>" placeholder="空欄ならタイトルから自動生成">
+    <small>例：/works/<strong><%= work ? work.slug : 'project-name' %></strong></small>
+  </label>
+
+  <label class="admin-field">
+    <span>概要（一覧に表示）</span>
+    <textarea name="summary" rows="2" placeholder="どんなプロジェクトか一言で"><%= work ? work.summary : '' %></textarea>
+  </label>
+
+  <label class="admin-field">
+    <span>使用技術・タグ（カンマ区切り）</span>
+    <input type="text" name="tags" value="<%= work ? work.tags.join(', ') : '' %>" placeholder="Node.js, React, AWS">
+  </label>
+
+  <label class="admin-field">
+    <span>関連URL（公開サイト等）</span>
+    <input type="url" name="url" value="<%= work ? work.url : '' %>" placeholder="https://...">
+  </label>
+
+  <label class="admin-field">
+    <span>カバー画像URL</span>
+    <input type="url" name="coverImage" value="<%= work ? work.coverImage : '' %>" placeholder="https://...">
+  </label>
+
+  <label class="admin-field">
+    <span>詳細（Markdown対応）</span>
+    <textarea name="body" rows="14" class="mono" placeholder="## 課題&#10;&#10;## 取り組み&#10;&#10;## 成果"><%= work ? work.body : '' %></textarea>
+  </label>
+
+  <label class="admin-check">
+    <input type="checkbox" name="published" <%= work && work.published ? 'checked' : '' %>>
+    <span>公開する（チェックを外すと下書き）</span>
+  </label>
+
+  <div class="admin-form-actions">
+    <button type="submit" class="btn btn-primary">保存する</button>
+    <a class="btn btn-ghost" href="/admin">キャンセル</a>
+    <% if (mode === "edit") { %><a class="btn btn-ghost" href="/works/<%= work.slug %>" target="_blank" rel="noopener">プレビュー ↗</a><% } %>
+  </div>
+</form>
+
+<%- include("partials/foot") %>
